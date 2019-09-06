@@ -4,7 +4,7 @@ import tokutils
 import toktypes
 
 # In order to use this in `atom` before the actual implementation.
-proc expression*(ts: TokenStream): float
+proc expression(ts: TokenStream): float
 
 proc atom(ts: TokenStream): float =
   let lhs = ts.expect(@[T_LBR, T_INT])
@@ -16,7 +16,7 @@ proc atom(ts: TokenStream): float =
     discard ts.expect(T_RBR)
     return inner
 
-proc division*(ts: TokenStream): float =
+proc division(ts: TokenStream): float =
     let lhs = ts.atom
 
     if ts.peek.kind == T_DIV:
@@ -25,7 +25,7 @@ proc division*(ts: TokenStream): float =
     else:
       return lhs
 
-proc multiplication*(ts: TokenStream): float =
+proc multiplication(ts: TokenStream): float =
   let lhs = ts.division
 
   if ts.peek.kind == T_MUL:
@@ -34,7 +34,7 @@ proc multiplication*(ts: TokenStream): float =
   else:
     return lhs
 
-proc expression*(ts: TokenStream): float =
+proc expression(ts: TokenStream): float =
   let lhs = ts.multiplication
   let mid = ts.peek
 
@@ -49,7 +49,7 @@ proc expression*(ts: TokenStream): float =
 
     else: return lhs
     
-proc entry*(ts: TokenStream): float =
+proc entry(ts: TokenStream): float =
   if ts.peek.kind == T_EOF:
     return
   else:
