@@ -2,8 +2,9 @@ import toktypes
 
 type
   ParsingError* = ref object of CatchableError
-    lastValid*: TokenType
-    lastValidValue*: string
+    lastValidKind*: TokenType
+    lastValidVal*: string
+    pos*: int
 
   LexicalError* = ref object of CatchableError
     pos*: int
@@ -14,5 +15,5 @@ proc error*(msg: string): void =
 proc newLexicalError*(msg: string, pos: int = 0): void =
   raise LexicalError(msg: msg, pos: pos)
 
-proc newParsingError*(msg: string, lval: TokenType, lvalval: string = ""): void =
-  raise ParsingError(msg: msg, lastValid: lval, lastValidValue: lvalval)
+proc newParsingError*(msg: string, lval: TokenType, lvalval: string = "", pos: int = 0): void =
+  raise ParsingError(msg: msg, lastValidKind: lval, lastValidVal: lvalval, pos: pos)

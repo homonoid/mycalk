@@ -1,20 +1,31 @@
-import strformat
-import strutils
+from strutils import parseFloat
 import tokutils
 import toktypes
 
-# In order to use this in `atom` before the actual implementation.
+# In order to use these before the actual implementation.
 proc expression(ts: TokenStream): float
+proc atom(ts: TokenStream): float
+
+proc number(ts: TokenStream): float =
+  let unop = ts.expect(@[T_INT, T_MINUS, T_PLUS])
+
+  case unop.kind:
+    of T_MINUS: return ts.atom * -1
+    of T_PLUS: return ts.atom * 1
+    of T_INT: return parseFloat(unop.val)
+    else: discard # unreachable
 
 proc atom(ts: TokenStream): float =
-  let lhs = ts.expect(@[T_LBR, T_INT])
+  let lhs = ts.peek
 
-  if lhs.kind == T_INT:
-    return parseFloat(lhs.val)
-  elif lhs.kind == T_LBR:
+  if lhs.kind == T_LBR:
+    discard ts.chomp # eat the (
     let inner = ts.expression
-    discard ts.expect(T_RBR)
+    discard ts.expect(T_RBR) # eat the )
     return inner
+  else:
+    return ts.number
+    
 
 proc division(ts: TokenStream): float =
     let lhs = ts.atom

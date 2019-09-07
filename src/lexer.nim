@@ -1,9 +1,10 @@
 import streams
 import tokutils
-import strformat
-import sequtils
-import errors
 import toktypes
+
+from errors import newLexicalError, newParsingError
+from strutils import Digits, Whitespace
+from strformat import fmt
 
 proc lex*(input: string): TokenStream =
   let chars = newStringStream(input)
@@ -12,11 +13,13 @@ proc lex*(input: string): TokenStream =
 
   while not chars.atEnd():
     case chars.peekChar:
-      of '0'..'9':
+      of Digits:
         var buffer: string
         var token: Token
 
-        while chars.peekChar in '0'..'9': 
+        token.pos = chars.getPosition
+
+        while chars.peekChar in Digits: 
           buffer = buffer & $chars.readChar()
        
         token.kind = T_INT
@@ -27,32 +30,33 @@ proc lex*(input: string): TokenStream =
         var token: Token
 
         token.val = chars.peekStr(1)
+        token.pos = chars.getPosition
 
         case chars.readChar:
-          of '+': token.kind = TokenType.T_PLUS
-          of '-': token.kind = TokenType.T_MINUS
-          of '*': token.kind = TokenType.T_MUL
-          of '/': token.kind = TokenType.T_DIV
+          of '+': token.kind = T_PLUS
+          of '-': token.kind = T_MINUS
+          of '*': token.kind = T_MUL
+          of '/': token.kind = T_DIV
 
           of '(': 
             braceLevel.add chars.getPosition
-            token.kind = TokenType.T_LBR
+            token.kind = T_LBR
 
           of ')': 
             if braceLevel.len > 0:
               discard braceLevel.pop
             else:
               newLexicalError(
-                fmt"lexical error caused by ')' at char {chars.getPosition}",
+                fmt"maybe you forgot to open brace at char {chars.getPosition}",
                 chars.getPosition
               )
-            token.kind = TokenType.T_RBR
+            token.kind = T_RBR
 
           else: discard # (unreachable)
 
         tokens.add(token)
 
-      of ' ', '\n', '\t', '\r': 
+      of Whitespace: 
         discard chars.readChar
       
       else:

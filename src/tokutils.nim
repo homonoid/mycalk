@@ -1,17 +1,18 @@
-import strformat
-import strutils
 import errors
 import toktypes
 
+from strformat import fmt
+from strutils import join
+
 type
-  Token* = tuple
-    kind: TokenType
-    val: string
+  Token* = object of RootObj
+    kind*: TokenType
+    val*: string
+    pos*: int
 
   TokenStream* = ref object of RootObj
     pos*: int
     tokens*: seq[Token]
-    expression: proc (ts: TokenStream): float
 
 proc previous*(ts: TokenStream): Token =
   if ts.pos > 0:
@@ -32,10 +33,12 @@ proc expect*(ts: TokenStream, expecting: TokenType): Token =
   if ts.peek.kind == expecting:
     return ts.chomp
   else:
+
     newParsingError(
       fmt"parsing error: expected {expecting}, found {ts.peek.kind}",
       ts.previous.kind,
-      ts.previous.val
+      ts.previous.val,
+      ts.previous.pos
     )
 
 proc expect*(ts: TokenStream, expecting: seq[TokenType]): Token =
@@ -46,7 +49,8 @@ proc expect*(ts: TokenStream, expecting: seq[TokenType]): Token =
     newParsingError(
       fmt"parsing error: expected {valids}, found {ts.peek.kind}",
       ts.previous.kind,
-      ts.previous.val
+      ts.previous.val,
+      ts.previous.pos
     )
 
 proc newTokenStream*(tokens: seq[Token]): TokenStream =
