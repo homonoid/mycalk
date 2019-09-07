@@ -8,6 +8,9 @@ import toktypes
 proc expression(ts: TokenStream): float
 proc atom(ts: TokenStream): float
 
+# number ::= + atom
+#          | - atom
+#          | INT
 proc number(ts: TokenStream): float =
   let unop = ts.expect(@[T_INT, T_MINUS, T_PLUS])
 
@@ -17,6 +20,8 @@ proc number(ts: TokenStream): float =
     of T_INT: return parseFloat(unop.val)
     else: discard # unreachable
 
+# atom ::= ( expression )
+#        | number
 proc atom(ts: TokenStream): float =
   if ts.peek.kind == T_LBR:
     discard ts.chomp
@@ -26,6 +31,8 @@ proc atom(ts: TokenStream): float =
   else:
     return ts.number
     
+# term ::= atom ^ term
+#        | atom
 proc term(ts: TokenStream): float =
   let lhs = ts.atom
 
@@ -35,6 +42,8 @@ proc term(ts: TokenStream): float =
   else:
     return lhs
 
+# division ::= term / division
+#            | term
 proc division(ts: TokenStream): float =
     let lhs = ts.term
 
@@ -44,6 +53,8 @@ proc division(ts: TokenStream): float =
     else:
       return lhs
 
+# multiplication ::= division * multiplication
+#                  | multiplication
 proc multiplication(ts: TokenStream): float =
   let lhs = ts.division
 
@@ -53,6 +64,9 @@ proc multiplication(ts: TokenStream): float =
   else:
     return lhs
 
+# expression ::= multiplication + expression
+#              | multiplication - expression
+#              | multiplication
 proc expression(ts: TokenStream): float =
   let lhs = ts.multiplication
 
@@ -67,7 +81,9 @@ proc expression(ts: TokenStream): float =
 
     else: 
       return lhs
-    
+
+# entry ::= expression
+#         | /* empty */
 proc entry(ts: TokenStream): float =
   if ts.peek.kind == T_EOF: 
     return
