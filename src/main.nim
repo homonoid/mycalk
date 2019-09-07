@@ -14,8 +14,7 @@ while true:
     let tokens = lex(line)
     let result = parse(tokens)
 
-    # NOTE: there is only one possibility of `tokens`s length being one:
-    # if it ends with an EOF. Otherwise it will be two or more tokens.
+    # NOTE: length of tokens.tokens is 1 only if there is just an EOF token.
     if len(tokens.tokens) > 1:
       echo "~> " & $result
 
@@ -23,8 +22,8 @@ while true:
     echo spaces(e.pos + prompt.len - 1) & "\e[31m\e[1m^\e[0m"
     error(e.msg)
   except ParsingError as e:
-    # NOTE: .pos is the last valid pos, so to make it be a position of the error
-    # we add 1. Thus, `- 1` in `e.pos + prompt.len - 1` is cancelled.
+    # NOTE: .pos is the last valid token's pos, so to make it the position of
+    # the token that caused the error we shall add 1. Hence `- 1` is cancelled.
     echo spaces(e.pos + prompt.len) & "\e[31m\e[1m^\e[0m" 
     error(e.msg)
   except IOError:

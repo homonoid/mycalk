@@ -1,4 +1,6 @@
 from strutils import parseFloat
+from math import pow
+
 import tokutils
 import toktypes
 
@@ -16,22 +18,28 @@ proc number(ts: TokenStream): float =
     else: discard # unreachable
 
 proc atom(ts: TokenStream): float =
-  let lhs = ts.peek
-
-  if lhs.kind == T_LBR:
-    discard ts.chomp # eat the (
+  if ts.peek.kind == T_LBR:
+    discard ts.chomp
     let inner = ts.expression
     discard ts.expect(T_RBR) # eat the )
     return inner
   else:
     return ts.number
     
+proc term(ts: TokenStream): float =
+  let lhs = ts.atom
+
+  if ts.peek.kind == T_POW:
+    discard ts.chomp
+    return lhs.pow(ts.term)
+  else:
+    return lhs
 
 proc division(ts: TokenStream): float =
-    let lhs = ts.atom
+    let lhs = ts.term
 
     if ts.peek.kind == T_DIV:
-      discard ts.chomp # eat the /
+      discard ts.chomp
       return lhs / ts.division
     else:
       return lhs
@@ -40,30 +48,30 @@ proc multiplication(ts: TokenStream): float =
   let lhs = ts.division
 
   if ts.peek.kind == T_MUL:
-    discard ts.chomp # eat the *
+    discard ts.chomp
     return lhs * ts.multiplication
   else:
     return lhs
 
 proc expression(ts: TokenStream): float =
   let lhs = ts.multiplication
-  let mid = ts.peek
 
-  case mid.kind:
+  case ts.peek.kind:
     of T_PLUS: 
       discard ts.chomp
       return lhs + ts.expression
-    
-    of T_MINUS:
+
+    of T_MINUS: 
       discard ts.chomp
       return lhs - ts.expression
 
-    else: return lhs
+    else: 
+      return lhs
     
 proc entry(ts: TokenStream): float =
-  if ts.peek.kind == T_EOF:
+  if ts.peek.kind == T_EOF: 
     return
-  else:
+  else: 
     return ts.expression
 
 proc parse*(ts: TokenStream): float =

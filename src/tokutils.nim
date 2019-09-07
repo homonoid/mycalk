@@ -25,9 +25,8 @@ proc chomp*(ts: TokenStream): Token =
   if ts.peek.kind == T_EOF: 
     return ts.peek
   else:
-    let temp = ts.peek
     ts.pos += 1
-    return temp
+    return ts.previous
 
 proc expect*(ts: TokenStream, expecting: TokenType): Token =
   if ts.peek.kind == expecting:
@@ -35,7 +34,7 @@ proc expect*(ts: TokenStream, expecting: TokenType): Token =
   else:
 
     newParsingError(
-      fmt"parsing error: expected {expecting}, found {ts.peek.kind}",
+      fmt"parsing error: expected {expecting}, yet found {ts.peek.kind}",
       ts.previous.kind,
       ts.previous.val,
       ts.previous.pos
@@ -47,7 +46,7 @@ proc expect*(ts: TokenStream, expecting: seq[TokenType]): Token =
   else:
     let valids = join(expecting, " or ")
     newParsingError(
-      fmt"parsing error: expected {valids}, found {ts.peek.kind}",
+      fmt"parsing error: expected {valids}, yet found {ts.peek.kind}",
       ts.previous.kind,
       ts.previous.val,
       ts.previous.pos

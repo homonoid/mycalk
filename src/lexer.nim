@@ -11,7 +11,7 @@ proc lex*(input: string): TokenStream =
   var tokens: seq[Token]
   var braceLevel: seq[int]
 
-  while not chars.atEnd():
+  while not chars.atEnd:
     case chars.peekChar:
       of Digits:
         var buffer: string
@@ -20,16 +20,16 @@ proc lex*(input: string): TokenStream =
         token.pos = chars.getPosition
 
         while chars.peekChar in Digits: 
-          buffer = buffer & $chars.readChar()
+          buffer = buffer & $chars.readChar
        
         token.kind = T_INT
         token.val = buffer
         tokens.add(token)
         
-      of '+', '-', '*', '/', '(', ')':
+      of '+', '-', '*', '/', '^':
         var token: Token
 
-        token.val = chars.peekStr(1)
+        token.val = $chars.peekChar
         token.pos = chars.getPosition
 
         case chars.readChar:
@@ -37,24 +37,27 @@ proc lex*(input: string): TokenStream =
           of '-': token.kind = T_MINUS
           of '*': token.kind = T_MUL
           of '/': token.kind = T_DIV
-
-          of '(': 
-            braceLevel.add chars.getPosition
-            token.kind = T_LBR
-
-          of ')': 
-            if braceLevel.len > 0:
-              discard braceLevel.pop
-            else:
-              newLexicalError(
-                fmt"maybe you forgot to open brace at char {chars.getPosition}",
-                chars.getPosition
-              )
-            token.kind = T_RBR
-
-          else: discard # (unreachable)
+          of '^': token.kind = T_POW
+          else: discard # unreachable
 
         tokens.add(token)
+
+      of '(': 
+        let token = Token(kind: T_LBR, val: $chars.readChar, pos: chars.getPosition)
+        braceLevel.add(chars.getPosition)
+        tokens.add(token)
+
+      of ')': 
+        let token = Token(kind: T_RBR, val: $chars.readChar, pos: chars.getPosition) 
+        
+        if braceLevel.len > 0:
+          discard braceLevel.pop
+          tokens.add(token)
+        else:
+          newLexicalError(
+            fmt"maybe you forgot to open the brace from char {chars.getPosition}?",
+            chars.getPosition
+          )
 
       of Whitespace: 
         discard chars.readChar
@@ -68,7 +71,7 @@ proc lex*(input: string): TokenStream =
   if braceLevel.len > 0:
     let lastBrace: int = braceLevel[braceLevel.len - 1]
     newLexicalError(
-      fmt"maybe you forgot to close braces? The last one was at char {lastBrace}",
+      fmt"maybe you forgot to close the brace from char {lastBrace}?",
       lastBrace
     )
     
