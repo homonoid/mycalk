@@ -42,10 +42,9 @@ proc lex*(input: string): TokenStream =
             if braceLevel.len > 0:
               discard braceLevel.pop
             else:
-              # TODO: make this a function because it is used often!
-              raise LexicalError(
-                msg: fmt"lexical error caused by ')' at char {chars.getPosition}",
-                pos: chars.getPosition
+              newLexicalError(
+                fmt"lexical error caused by ')' at char {chars.getPosition}",
+                chars.getPosition
               )
             token.kind = TokenType.T_RBR
 
@@ -57,18 +56,18 @@ proc lex*(input: string): TokenStream =
         discard chars.readChar
       
       else:
-        raise LexicalError(
-          msg: fmt"lexical error caused by '{chars.readChar}' at char {chars.getPosition}",
-          pos: chars.getPosition
+        newLexicalError(
+          fmt"lexical error caused by '{chars.readChar}' at char {chars.getPosition}",
+          chars.getPosition
         )
     
   if braceLevel.len > 0:
     let lastBrace: int = braceLevel[braceLevel.len - 1]
-
-    raise LexicalError(
-      msg: fmt"maybe you forgot to close braces? The last one was at char {lastBrace}",
-      pos: lastBrace
+    newLexicalError(
+      fmt"maybe you forgot to close braces? The last one was at char {lastBrace}",
+      lastBrace
     )
+    
   # Append the EOF token.
   var eof: Token
   eof.kind = T_EOF

@@ -32,10 +32,10 @@ proc expect*(ts: TokenStream, expecting: TokenType): Token =
   if ts.peek.kind == expecting:
     return ts.chomp
   else:
-    raise ParsingError(
-      msg: fmt"parsing error: expected {expecting}, found {ts.peek.kind}",
-      lastValid: ts.previous.kind,
-      lastValidValue: ts.previous.val
+    newParsingError(
+      fmt"parsing error: expected {expecting}, found {ts.peek.kind}",
+      ts.previous.kind,
+      ts.previous.val
     )
 
 proc expect*(ts: TokenStream, expecting: seq[TokenType]): Token =
@@ -43,10 +43,10 @@ proc expect*(ts: TokenStream, expecting: seq[TokenType]): Token =
     return ts.chomp
   else:
     let valids = join(expecting, " or ")
-    raise ParsingError(
-      msg: fmt"parsing error: expected {valids}, found {ts.peek.kind}",
-      lastValid: ts.previous.kind,
-      lastValidValue: ts.previous.val
+    newParsingError(
+      fmt"parsing error: expected {valids}, found {ts.peek.kind}",
+      ts.previous.kind,
+      ts.previous.val
     )
 
 proc newTokenStream*(tokens: seq[Token]): TokenStream =
