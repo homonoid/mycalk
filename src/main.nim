@@ -22,9 +22,7 @@ while true:
     echo spaces(e.pos + prompt.len - 1) & "\e[31m\e[1m^\e[0m"
     error(e.msg)
   except ParsingError as e:
-    # NOTE: .pos is the last valid token's pos, so to make it the position of
-    # the token that caused the error we shall add 1. Hence `- 1` is cancelled.
-    echo spaces(e.pos + prompt.len) & "\e[31m\e[1m^\e[0m" 
+    echo spaces(e.pos + prompt.len + 1) & "\e[31m\e[1m^\e[0m" 
     error(e.msg)
   except IOError:
     echo "Bye!"

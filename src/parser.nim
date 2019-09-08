@@ -83,12 +83,14 @@ proc expression(ts: TokenStream): float =
       return lhs
 
 # entry ::= expression
-#         | /* empty */
+#         | EOF
 proc entry(ts: TokenStream): float =
   if ts.peek.kind == T_EOF: 
     return
   else: 
-    return ts.expression
+    let temp = ts.expression
+    discard ts.expect(T_EOF)
+    return temp
 
 proc parse*(ts: TokenStream): float =
-  return entry(ts)
+  return ts.entry
