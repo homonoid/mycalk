@@ -9,7 +9,7 @@ from strformat import fmt
 proc lex*(input: string): TokenStream =
   let chars = newStringStream(input)
   var tokens: seq[Token]
-  var braceLevel: seq[int]
+  var braceStack: seq[int]
 
   while not chars.atEnd:
     case chars.peekChar:
@@ -44,14 +44,14 @@ proc lex*(input: string): TokenStream =
 
       of '(': 
         let token = Token(kind: T_LBR, val: $chars.readChar, pos: chars.getPosition)
-        braceLevel.add(chars.getPosition)
+        braceStack.add(chars.getPosition)
         tokens.add(token)
 
       of ')': 
         let token = Token(kind: T_RBR, val: $chars.readChar, pos: chars.getPosition) 
         
-        if braceLevel.len > 0:
-          discard braceLevel.pop
+        if braceStack.len > 0:
+          discard braceStack.pop
           tokens.add(token)
         else:
           newLexicalError(
@@ -68,8 +68,8 @@ proc lex*(input: string): TokenStream =
           chars.getPosition
         )
     
-  if braceLevel.len > 0:
-    let lastBrace: int = braceLevel[braceLevel.len - 1]
+  if braceStack.len > 0:
+    let lastBrace: int = braceStack[braceStack.len - 1]
     newLexicalError(
       fmt"maybe you forgot to close the brace from char {lastBrace}?",
       lastBrace
